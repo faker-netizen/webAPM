@@ -1,0 +1,91 @@
+#root {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  height: 4em;
+  padding: 0.8em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+  margin-bottom: 2rem;
+}
+
+.read-the-docs {
+  color: #888;
+  margin-top: 2rem;
+}
+
+/* 测试按钮样式 */
+.test-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.test-buttons h3 {
+  grid-column: 1 / -1;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.test-buttons button {
+  background-color: #646cff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s, transform 0.1s;
+  min-width: 180px;
+  height: auto;
+}
+
+.test-buttons button:active {
+  transform: translateY(1px);
+}
+
+.test-buttons button:hover {
+  background-color: #535bf2;
+}
+
+.test-buttons button:active {
+  background-color: #434190;
+}
+
+/* 错误组件样式 */
+.error-component {
+  color: #ef4444;
+  padding: 1rem;
+  border: 1px solid #fecaca;
+  background-color: #fef2f2;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
