@@ -224,7 +224,6 @@ class BehaviorCollector {
         xhr.addEventListener('load', handleLoad);
         xhr.addEventListener('error', handleError);
         xhr.addEventListener('abort', handleError);
-        // xhr.addEventListener('timeout', handleError);
       }
 
       return collector.originalXHRSend.apply(this, [body, ...args]);
@@ -241,7 +240,8 @@ class BehaviorCollector {
     const collector = this;
 
     window.fetch = async (url, config = {}) => {
-      const isSdkInternal = config.__sdkInternal === true;
+      const headers = config.headers || {};
+      const isSdkInternal = headers['X-SDK-Internal'] === 'true';
 
       if (isSdkInternal) {
         return collector.originalFetch(url, config);

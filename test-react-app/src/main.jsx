@@ -13,7 +13,7 @@ const monitor = init({
     react: true
   },
   advanced: {
-    enableSessionReplay: true,
+    enableSessionReplay: false,
     sessionReplaySampleRate: 1
   },
   reporter: {

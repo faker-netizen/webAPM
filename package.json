@@ -2,12 +2,11 @@
   "name": "@lxl/webapm",
   "version": "1.0.0",
   "description": "A powerful front-end monitoring SDK for React and Vue applications",
-  "main": "./dist/web-apm-sdk.umd.js",
+  "main": "./src/index.js",
   "module": "./dist/web-apm-sdk.esm.js",
   "exports": {
     ".": {
-      "import": "./dist/web-apm-sdk.esm.js",
-      "require": "./dist/web-apm-sdk.umd.js"
+      "import": "./dist/web-apm-sdk.esm.js"
     }
   },
   "scripts": {

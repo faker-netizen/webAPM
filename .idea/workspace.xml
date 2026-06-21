@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e5bbb621-dd69-422f-8799-5e342eea16cb" name="更改" comment="" />
+    <list default="true" id="e5bbb621-dd69-422f-8799-5e342eea16cb" name="更改" comment="version 1.0.0">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/collector/behaviorCollector.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/collector/behaviorCollector.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/reporter/dataReporter.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/reporter/dataReporter.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-react-app/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/test-react-app/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test-react-app/src/main.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/test-react-app/src/main.jsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -98,11 +105,24 @@
       <workItem from="1781962166200" duration="9503000" />
       <workItem from="1782005790778" duration="10970000" />
       <workItem from="1782044930378" duration="2824000" />
-      <workItem from="1782048122228" duration="6034000" />
+      <workItem from="1782048122228" duration="6760000" />
     </task>
+    <task id="LOCAL-00001" summary="version 1.0.0">
+      <option name="closed" value="true" />
+      <created>1782054275498</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1782054275498</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="version 1.0.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="version 1.0.0" />
   </component>
 </project>

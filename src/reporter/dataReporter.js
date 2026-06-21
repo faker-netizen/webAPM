@@ -75,9 +75,6 @@ class DataReporter {
   }
 
   flushQueue() {
-    if (this.config.debug){
-      console.log(this.queue)
-    }
     if (this.queue.length === 0) return;
 
     const batchData = [...this.queue];
@@ -135,23 +132,16 @@ class DataReporter {
     this.addToQueue(data);
   }
 
-/**
- * 报告行为数据的方法
- * @param {Object} behaviorData - 包含行为类型和相关信息的数据对象
- */
   _reportBehavior(behaviorData) {
-    // 检查行为报告是否启用
     if (!this.config.behavior.enable) return;
 
-    // 构建要发送的数据对象
     const data = {
-      type: 'behavior',           // 数据类型标识为行为数据
-      subType: behaviorData.type,  // 行为子类型，从传入数据中获取
-      timestamp: Date.now(),      // 当前时间戳
-      ...behaviorData             // 展开运算符，合并其他行为数据
+      type: 'behavior',
+      subType: behaviorData.type,
+      timestamp: Date.now(),
+      ...behaviorData
     };
 
-    // 将数据添加到队列中等待处理
     this.addToQueue(data);
   }
 
@@ -184,6 +174,7 @@ class DataReporter {
     };
 
     const serializedData = JSON.stringify(reportData);
+
     switch (this.config.reporter.reportMethod) {
       case 'beacon':
         this.reportBeacon(serializedData);
@@ -202,19 +193,17 @@ class DataReporter {
     if (!window.fetch) {
       return this.reportImage(data);
     }
-    console.log(1111,data,fetch)
-    window.fetch(`${this.config.serverUrl}/api/report`, {
+    console.log(this.queue)
+    fetch(`${this.config.serverUrl}/api/report`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-SDK-Internal': 'true'
       },
       body: data,
-      credentials: 'omit',
-      mode: 'cors',
-      __sdkInternal: true,
+      credentials: 'include',
       keepalive: true
-    }).then((res)=>{
-      console.log(res)}).catch((error) => {
+    }).catch((error) => {
       this.handleReportError(data, error);
     });
   }
