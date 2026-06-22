@@ -1,13 +1,21 @@
 {
-  "name": "@lxl/webapm",
+  "name": "@lxl_fe/webapm",
   "version": "1.0.0",
   "description": "A powerful front-end monitoring SDK for React and Vue applications",
-  "main": "./src/index.js",
+  "main": "./dist/web-apm-sdk.esm.js",
   "module": "./dist/web-apm-sdk.esm.js",
   "exports": {
     ".": {
       "import": "./dist/web-apm-sdk.esm.js"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faker-netizen/webAPM.git"
+  },
+  "homepage": "https://github.com/faker-netizen/webAPM#readme",
+  "bugs": {
+    "url": "https://github.com/faker-netizen/webAPM/issues"
   },
   "scripts": {
     "build": "webpack --mode production",

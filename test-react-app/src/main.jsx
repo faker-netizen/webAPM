@@ -2,7 +2,7 @@ import React, { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { init } from '@lxl/webapm'
+import { init } from '@lxl_fe/webapm'
 
 // 初始化监控SDK
 const monitor = init({

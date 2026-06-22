@@ -242,9 +242,10 @@ class BehaviorCollector {
     window.fetch = async (url, config = {}) => {
       const headers = config.headers || {};
       const isSdkInternal = headers['X-SDK-Internal'] === 'true';
+      // const isSdkInternal = url.split('/').includes('report');
 
       if (isSdkInternal) {
-        return collector.originalFetch(url, config);
+        return collector.originalFetch.call(window, url, config);
       }
 
       const startTime = Date.now();
@@ -259,7 +260,7 @@ class BehaviorCollector {
       };
 
       try {
-        const response = await collector.originalFetch(url, config);
+        const response = await collector.originalFetch.call(window, url, config);
         const endTime = Date.now();
 
         monitorData.endTime = endTime;

@@ -14,7 +14,7 @@
     "react-dom": "^19.2.0",
     "rrweb": "^2.0.0-alpha.4",
     "web-vitals": "^5.1.0",
-    "@lxl/webapm": "file:.."
+    "@lxl_fe/webapm": "file:.."
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
