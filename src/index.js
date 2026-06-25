@@ -214,8 +214,3 @@ export {
   WebMonitor,
   init,
 };
-
-export default {
-  WebMonitor,
-  init
-};

@@ -1,24 +1,18 @@
 import eventBus from '../core/eventBus';
-import { SourceMapConsumer } from 'source-map';
 
 /**
- * SourceMapParser - Source Map ¶ÑÕ»½âÎöÄ£¿é
+ * SourceMapParser - Source Map stack parser
  *
- * ¹¦ÄÜ£º
- * 1. ½âÎö´íÎó¶ÑÕ»ÖÐµÄÐÐÁÐºÅ£¬Ó³Éä»ØÔ´´úÂëÔ­Ê¼Î»ÖÃ
- * 2. Í¨¹ý Source Map ÎÄ¼þ½«´ò°üºóµÄÎ»ÖÃ»¹Ô­ÎªÔ´´úÂëÎ»ÖÃ
- * 3. ÉÏ±¨»¹Ô­ºóµÄ¶ÑÕ»ÐÅÏ¢£¬±ãÓÚ¶¨Î»ÎÊÌâ
- *
- * ËµÃ÷£º
- * - Éú²ú»·¾³½¨ÒéÔÚ·þÎñ¶Ë½øÐÐ Source Map ½âÎö£¬ÒÔ±ÜÃâ±©Â¶Ô´Âë¡£
- * - ÕâÀï±£Áô¿Í»§¶Ë½âÎöÄÜÁ¦£¬µ«¸ÄÎª¾²Ì¬ÒÀÀµ£¬±ÜÃâ¿â°üÉú³É¶¯Ì¬ chunk¡£
+ * 1. Listen for error:captured events and extract file/line/column from stack traces.
+ * 2. Load the corresponding source map file and map generated code back to original source.
+ * 3. Attach the original stack to error payloads for easier debugging.
  */
 class SourceMapParser {
   constructor(config) {
     this.config = config;
     this._cache = new Map();
     this._errorHandler = null;
-    this._sourceMapConsumer = SourceMapConsumer;
+    this._sourceMapConsumer = null;
   }
 
   init() {
@@ -36,7 +30,27 @@ class SourceMapParser {
     this._errorHandler = (errorData) => this._onErrorCaptured(errorData);
     eventBus.on('error:captured', this._errorHandler);
 
+    this._loadSourceMapLib();
+
     eventBus.emit('advanced:sourceMap:initialized');
+  }
+
+  /**
+   * å¼‚æ­¥åŠ è½½ source-map åº“
+   */
+  async _loadSourceMapLib() {
+    try {
+      const module = await import('source-map');
+      this._sourceMapConsumer = module.SourceMapConsumer || module.default?.SourceMapConsumer;
+
+      if (this._sourceMapConsumer && this.config.debug) {
+        console.log('[Monitor] source-map åº“åŠ è½½æˆåŠŸ');
+      }
+    } catch (error) {
+      if (this.config.debug) {
+        console.warn('[Monitor] source-map åº“åŠ è½½å¤±è´¥ï¼Œå°†ä½¿ç”¨æœåŠ¡ç«¯è§£æž:', error.message);
+      }
+    }
   }
 
   _onErrorCaptured(errorData) {
@@ -46,28 +60,32 @@ class SourceMapParser {
     if (stackFrames.length === 0) return;
 
     if (this.options.serverParseUrl) {
-      this._parseOnServer(stackFrames).then(parsedFrames => {
-        if (parsedFrames.length > 0) {
-          errorData.originalStack = parsedFrames;
-          eventBus.emit('advanced:sourceMap:parsed', {
-            originalStack: parsedFrames,
-            errorData
-          });
-        }
-      }).catch(() => {});
+      this._parseOnServer(stackFrames)
+        .then((parsedFrames) => {
+          if (parsedFrames.length > 0) {
+            errorData.originalStack = parsedFrames;
+            eventBus.emit('advanced:sourceMap:parsed', {
+              originalStack: parsedFrames,
+              errorData
+            });
+          }
+        })
+        .catch(() => {});
       return;
     }
 
     if (this._sourceMapConsumer) {
-      this._parseOnClient(stackFrames).then(parsedFrames => {
-        if (parsedFrames.length > 0) {
-          errorData.originalStack = parsedFrames;
-          eventBus.emit('advanced:sourceMap:parsed', {
-            originalStack: parsedFrames,
-            errorData
-          });
-        }
-      }).catch(() => {});
+      this._parseOnClient(stackFrames)
+        .then((parsedFrames) => {
+          if (parsedFrames.length > 0) {
+            errorData.originalStack = parsedFrames;
+            eventBus.emit('advanced:sourceMap:parsed', {
+              originalStack: parsedFrames,
+              errorData
+            });
+          }
+        })
+        .catch(() => {});
     }
   }
 
@@ -78,18 +96,18 @@ class SourceMapParser {
 
     for (const line of lines) {
       const match = line.match(stackRegex);
-      if (match) {
-        const [, functionName, filePath, line, column] = match;
-        if (filePath && !filePath.startsWith('chrome') && !filePath.includes('node_modules')) {
-          frames.push({
-            functionName: functionName || '<anonymous>',
-            filePath,
-            line: parseInt(line, 10),
-            column: parseInt(column, 10)
-          });
+      if (!match) continue;
 
-          if (frames.length >= this.options.maxStackDepth) break;
-        }
+      const [, functionName, filePath, lineNo, column] = match;
+      if (filePath && !filePath.startsWith('chrome') && !filePath.includes('node_modules')) {
+        frames.push({
+          functionName: functionName || '<anonymous>',
+          filePath,
+          line: parseInt(lineNo, 10),
+          column: parseInt(column, 10)
+        });
+
+        if (frames.length >= this.options.maxStackDepth) break;
       }
     }
 
@@ -125,7 +143,7 @@ class SourceMapParser {
         }
       } catch (error) {
         if (this.config.debug) {
-          console.warn('[Monitor] Source Map ½âÎöÊ§°Ü:', frame.filePath, error.message);
+          console.warn('[Monitor] Source Map parse failed:', frame.filePath, error.message);
         }
       }
     }
@@ -148,7 +166,7 @@ class SourceMapParser {
       }
     } catch (error) {
       if (this.config.debug) {
-        console.warn('[Monitor] ·þÎñ¶Ë Source Map ½âÎöÊ§°Ü:', error.message);
+        console.warn('[Monitor] Server Source Map parse failed:', error.message);
       }
     }
 
@@ -159,6 +177,7 @@ class SourceMapParser {
     if (this.options.mapUrlTemplate) {
       return this.options.mapUrlTemplate.replace('{file}', filePath);
     }
+
     return filePath + '.map';
   }
 
@@ -189,7 +208,7 @@ class SourceMapParser {
       return consumer;
     } catch (error) {
       if (this.config.debug) {
-        console.warn('[Monitor] Source Map ÎÄ¼þ»ñÈ¡Ê§°Ü:', sourceMapUrl, error.message);
+        console.warn('[Monitor] Source Map file fetch failed:', sourceMapUrl, error.message);
       }
       return null;
     }

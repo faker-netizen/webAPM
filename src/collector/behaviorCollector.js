@@ -245,6 +245,7 @@ class BehaviorCollector {
       // const isSdkInternal = url.split('/').includes('report');
 
       if (isSdkInternal) {
+        // return collector.originalFetch(url, config);
         return collector.originalFetch.call(window, url, config);
       }
 

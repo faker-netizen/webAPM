@@ -19,6 +19,20 @@ Front-end monitoring SDK for React and Vue applications.
 npm install @lxl_fe/webapm
 ```
 
+## Import
+
+This package ships both ESM and CommonJS entry points.
+
+```js
+// ESM
+import { init } from '@lxl_fe/webapm';
+```
+
+```js
+// CommonJS
+const { init } = require('@lxl_fe/webapm');
+```
+
 ## Quick Start
 
 ### React
@@ -147,6 +161,23 @@ monitor.destroy();
 
 - GitHub: https://github.com/faker-netizen/webAPM
 - Issues: https://github.com/faker-netizen/webAPM/issues
+
+## Build
+
+The package is built from `src/` with `tsup` and published with both ESM and CommonJS entry points:
+
+- `dist/index.js` for ESM
+- `dist/index.cjs` for CommonJS
+
+Use named imports in both environments:
+
+```js
+import { init } from '@lxl_fe/webapm';
+```
+
+```js
+const { init } = require('@lxl_fe/webapm');
+```
 
 ## License
 
