@@ -3,9 +3,6 @@ import eventBus from '../core/eventBus';
 let rrwebModule = null;
 let rrwebLoadPromise = null;
 
-/**
- * 异步加载 rrweb 模块
- */
 async function loadRrweb() {
   if (rrwebModule) return rrwebModule;
   if (rrwebLoadPromise) return rrwebLoadPromise;
@@ -16,7 +13,7 @@ async function loadRrweb() {
       return module;
     })
     .catch((error) => {
-      console.warn('[Monitor] rrweb 加载失败，录屏功能不可用:', error.message);
+      console.warn('[Monitor] rrweb loading failed, session replay unavailable:', error.message);
       rrwebLoadPromise = null;
       return null;
     });
@@ -24,30 +21,23 @@ async function loadRrweb() {
   return rrwebLoadPromise;
 }
 
-/**
- * SessionReplay - 会话录屏回放模块（仿 Sentry 实现）
- *
- * 核心策略：始终后台录制 + 环形缓冲区
- * 1. 初始化时立即开启 rrweb 录制，不等待错误触发
- * 2. 使用环形缓冲区始终保留最近 N 秒的录屏数据
- * 3. 错误发生时：
- *    - 标记错误在事件流中的位置
- *    - 继续录制 replayAfterError 秒（默认 10 秒）
- *    - 截取「错误前 replayBeforeError 秒 + 错误后 N 秒」的完整片段上报
- * 4. 上报后继续后台录制，保持环形缓冲区运转
- */
 class SessionReplay {
   constructor(config) {
     this.config = config;
-    this.stopFn = null; // rrweb record() 返回的停止函数
+    this.stopFn = null;
     this.isRecording = false;
-    this.events = []; // 环形缓冲区
-    this.errorIndex = -1; // 错误在缓冲区中的位置
-    this.pendingErrorCount = 0; // 待上报的错误计数
-    this.lastErrorTime = 0; // 最近一次错误时间戳
-    this.autoReportTimer = null; // 错误后延迟上报的定时器
-    this.flushTimer = null; // 定期 flush 的定时器
-    this._errorHandler = null; // 保存事件监听器引用，用于销毁时移除
+
+    this.segments = [];
+    this.currentSegment = null;
+    this.events = [];
+    this.errorIndex = -1;
+
+    this.pendingErrorCount = 0;
+    this.lastErrorTime = 0;
+    this.autoReportTimer = null;
+    this.flushTimer = null;
+    this._errorHandler = null;
+    this._unloadHandler = null;
   }
 
   init() {
@@ -55,7 +45,7 @@ class SessionReplay {
 
     if (Math.random() > this.config.advanced.sessionReplaySampleRate) {
       if (this.config.debug) {
-        console.log('[Monitor] 录屏采样未命中，跳过录屏初始化');
+        console.log('[Monitor] session replay sample miss, skip init');
       }
       return;
     }
@@ -79,13 +69,10 @@ class SessionReplay {
     eventBus.emit('advanced:sessionReplay:initialized');
 
     if (this.config.debug) {
-      console.log('[Monitor] 录屏模块已初始化，后台持续录制中');
+      console.log('[Monitor] session replay initialized');
     }
   }
 
-  /**
-   * 开启 rrweb 录制
-   */
   startRecording() {
     if (this.isRecording) return;
 
@@ -106,29 +93,25 @@ class SessionReplay {
 
     const recordFn = rrwebModule.record || rrwebModule.default?.record;
     if (typeof recordFn !== 'function') {
-      console.warn('[Monitor] rrweb record 函数不可用');
+      console.warn('[Monitor] rrweb record function unavailable');
       return;
     }
 
     const maxDuration = this.config.advanced.maxReplayDuration || 60;
     const maxEvents = maxDuration * 15;
+    const checkoutEveryNms = this.config.advanced.checkoutEveryNms || 5000;
 
     this.isRecording = true;
-    this.events = [];
+    this.segments = [];
+    this.currentSegment = [];
+    this.events = this.currentSegment;
+    this.errorIndex = -1;
 
     try {
       this.stopFn = recordFn({
-        emit: (event) => {
-          this.events.push(event);
-
-          if (this.events.length > maxEvents) {
-            this.events.shift();
-            if (this.errorIndex > 0) {
-              this.errorIndex--;
-            } else if (this.errorIndex === 0) {
-              this.errorIndex = -1;
-            }
-          }
+        checkoutEveryNms,
+        emit: (event, isCheckout) => {
+          this._handleRecordedEvent(event, isCheckout, maxEvents);
         },
         recordCanvas: false,
         maskAllInputs: true,
@@ -140,17 +123,47 @@ class SessionReplay {
       eventBus.emit('advanced:sessionReplay:started');
 
       if (this.config.debug) {
-        console.log('[Monitor] rrweb 录制已启动');
+        console.log('[Monitor] rrweb recording started');
       }
     } catch (error) {
-      console.warn('[Monitor] rrweb 录制启动失败:', error.message);
+      console.warn('[Monitor] rrweb recording failed:', error.message);
       this.isRecording = false;
     }
   }
 
-  /**
-   * 停止录制
-   */
+  _handleRecordedEvent(event, isCheckout, maxEvents) {
+    const EventType = this._getEventType();
+    const isFullSnapshot = EventType && event?.type === EventType.FullSnapshot;
+
+    if (!this.currentSegment) {
+      this.currentSegment = [];
+      this.segments = [this.currentSegment];
+      this.events = this.currentSegment;
+    }
+
+    if (isFullSnapshot && isCheckout && this.currentSegment.length > 0) {
+      this.currentSegment = [event];
+      this.segments.push(this.currentSegment);
+      this.events = this.currentSegment;
+      this.errorIndex = -1;
+    } else {
+      this.currentSegment.push(event);
+    }
+
+    if (this.currentSegment.length > maxEvents) {
+      this.currentSegment.shift();
+      if (this.errorIndex > 0) {
+        this.errorIndex--;
+      } else if (this.errorIndex === 0) {
+        this.errorIndex = -1;
+      }
+    }
+
+    while (this.segments.length > 2) {
+      this.segments.shift();
+    }
+  }
+
   stopRecording() {
     if (!this.isRecording) return;
 
@@ -165,12 +178,12 @@ class SessionReplay {
     eventBus.emit('advanced:sessionReplay:stopped');
   }
 
-  /**
-   * 错误捕获回调
-   */
   _onErrorCaptured(errorData) {
     this.lastErrorTime = Date.now();
-    this.errorIndex = this.events.length;
+    this.errorIndex =
+      this.currentSegment && this.currentSegment.length > 0
+        ? this.currentSegment.length
+        : this.events.length;
     this.pendingErrorCount++;
 
     if (!this.isRecording) {
@@ -181,7 +194,7 @@ class SessionReplay {
 
     if (this.config.debug) {
       console.log(
-        `[Monitor] 录屏：捕获到错误，标记位置=${this.errorIndex}，${this.config.advanced.replayAfterError || 10}秒后上报`
+        `[Monitor] session replay captured error at index ${this.errorIndex}, report after ${this.config.advanced.replayAfterError || 10}s`
       );
     }
 
@@ -192,9 +205,6 @@ class SessionReplay {
     });
   }
 
-  /**
-   * 重置自动上报计时器
-   */
   _resetAutoReportTimer() {
     this._clearAutoReportTimer();
 
@@ -212,54 +222,55 @@ class SessionReplay {
     }
   }
 
-  /**
-   * 页面卸载时上报
-   */
   _onPageUnload() {
     if (document.visibilityState === 'hidden' && this.pendingErrorCount > 0) {
       this._reportSessionReplay();
     }
   }
 
-  /**
-   * 上报录屏数据
-   */
   _reportSessionReplay() {
-    if (this.events.length === 0 || !this.config.serverUrl) return;
+    if (!this.config.serverUrl) return;
+
+    const sourceEvents = this._getReplaySourceEvents();
+    if (sourceEvents.length === 0) return;
+    const eventType = this._getEventType();
+    const hasRrwebTypedEvents =
+      !!eventType && sourceEvents.some((event) => typeof event?.type === 'number');
 
     const beforeErrorSec = this.config.advanced.replayBeforeError || 30;
-    let relevantEvents;
+    const beforeErrorCount = beforeErrorSec * 10;
+
+    let relevantEvents = [...sourceEvents];
     let errorOffset = -1;
 
-    if (this.errorIndex >= 0 && this.errorIndex < this.events.length) {
-      const beforeErrorCount = beforeErrorSec * 10;
+    if (this.errorIndex >= 0 && this.errorIndex < sourceEvents.length) {
       const startIndex = Math.max(0, this.errorIndex - beforeErrorCount);
-
-      relevantEvents = this.events.slice(startIndex);
+      relevantEvents = sourceEvents.slice(startIndex);
       errorOffset = this.errorIndex - startIndex;
-    } else {
-      relevantEvents = [...this.events];
     }
 
-    if (this.lastErrorTime > 0 && beforeErrorSec > 0) {
-      const cutoffTime = this.lastErrorTime - beforeErrorSec * 1000;
-      const filtered = [];
-      let newErrorOffset = -1;
+    if (hasRrwebTypedEvents) {
+      const firstFullSnapshotIndex = relevantEvents.findIndex((event) =>
+        this._isFullSnapshotEvent(event)
+      );
 
-      for (let i = 0; i < relevantEvents.length; i++) {
-        if (relevantEvents[i].timestamp >= cutoffTime) {
-          if (newErrorOffset === -1 && i >= errorOffset) {
-            newErrorOffset = filtered.length;
-          }
-          filtered.push(relevantEvents[i]);
+      if (firstFullSnapshotIndex > 0) {
+        relevantEvents = relevantEvents.slice(firstFullSnapshotIndex);
+        if (errorOffset >= 0) {
+          errorOffset = Math.max(0, errorOffset - firstFullSnapshotIndex);
         }
       }
 
-      relevantEvents = filtered;
-      errorOffset = newErrorOffset >= 0 ? newErrorOffset : errorOffset;
+      if (
+        relevantEvents.length === 0 ||
+        !relevantEvents.some((event) => this._isFullSnapshotEvent(event))
+      ) {
+        if (this.config.debug) {
+          console.warn('[Monitor] replay segment has no FullSnapshot, skip report');
+        }
+        return;
+      }
     }
-
-    if (relevantEvents.length === 0) return;
 
     const data = {
       type: 'session-replay',
@@ -287,14 +298,11 @@ class SessionReplay {
 
     if (this.config.debug) {
       console.log(
-        `[Monitor] 录屏数据已上报，事件数=${relevantEvents.length}，时长=${data.duration}ms`
+        `[Monitor] session replay reported, eventCount=${relevantEvents.length}, duration=${data.duration}ms`
       );
     }
   }
 
-  /**
-   * 发送上报数据
-   */
   _sendReport(data) {
     const sessionId = eventBus.emit('core:getSessionId') || '';
     const userId = eventBus.emit('core:getUserId') || '';
@@ -329,26 +337,42 @@ class SessionReplay {
         keepalive: true
       }).catch((err) => {
         if (this.config.debug) {
-          console.warn('[Monitor] 录屏数据上报失败:', err.message);
+          console.warn('[Monitor] session replay report failed:', err.message);
         }
       });
     } catch (error) {
       if (this.config.debug) {
-        console.warn('[Monitor] 录屏数据序列化失败:', error.message);
+        console.warn('[Monitor] session replay serialization failed:', error.message);
       }
     }
   }
 
-  /**
-   * 获取当前缓冲区中的事件（调试用）
-   */
-  getEvents() {
+  _getEventType() {
+    return rrwebModule?.EventType || rrwebModule?.default?.EventType || null;
+  }
+
+  _isFullSnapshotEvent(event) {
+    const EventType = this._getEventType();
+    return !!EventType && event?.type === EventType.FullSnapshot;
+  }
+
+  _getReplaySourceEvents() {
+    if (this.currentSegment && this.currentSegment.length > 0) {
+      return [...this.currentSegment];
+    }
+
+    const latestSegment = this.segments[this.segments.length - 1];
+    if (latestSegment && latestSegment.length > 0) {
+      return [...latestSegment];
+    }
+
     return [...this.events];
   }
 
-  /**
-   * 销毁模块，清理所有资源
-   */
+  getEvents() {
+    return [...this._getReplaySourceEvents()];
+  }
+
   destroy() {
     if (this.pendingErrorCount > 0) {
       this._reportSessionReplay();
@@ -374,6 +398,8 @@ class SessionReplay {
     }
 
     this.events = [];
+    this.segments = [];
+    this.currentSegment = null;
     this.errorIndex = -1;
     this.pendingErrorCount = 0;
     this.lastErrorTime = 0;

@@ -4,18 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e5bbb621-dd69-422f-8799-5e342eea16cb" name="更改" comment="version 1.0.2">
+    <list default="true" id="e5bbb621-dd69-422f-8799-5e342eea16cb" name="更改" comment="version 1.0.5">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/advanced/sessionReplay.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/advanced/sessionReplay.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/advanced/sourceMapParser.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/advanced/sourceMapParser.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/collector/behaviorCollector.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/collector/behaviorCollector.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/collector/performanceCollector.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/collector/performanceCollector.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test-react-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/test-react-app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/webpack.config.js" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,27 +23,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/projects/webapm",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.build.executor": "Run",
-    "npm.dev.executor": "Run",
-    "npm.test:server.executor": "Run",
-    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.JavaScript",
-    "ts.external.directory.path": "D:\\softwares\\webstorm\\WebStorm 2025.1.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/projects/webapm&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.build.executor&quot;: &quot;Run&quot;,
+    &quot;npm.dev.executor&quot;: &quot;Run&quot;,
+    &quot;npm.test:server.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.JavaScript&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\softwares\\webstorm\\WebStorm 2025.1.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="npm.dev">
     <configuration name="build" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/package.json" />
@@ -114,7 +104,8 @@
       <workItem from="1782048122228" duration="8035000" />
       <workItem from="1782103579529" duration="7007000" />
       <workItem from="1782271817891" duration="12651000" />
-      <workItem from="1782337273884" duration="9688000" />
+      <workItem from="1782337273884" duration="10631000" />
+      <workItem from="1782478002296" duration="2853000" />
     </task>
     <task id="LOCAL-00001" summary="version 1.0.0">
       <option name="closed" value="true" />
@@ -140,7 +131,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782107146532</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="version 1.0.5">
+      <option name="closed" value="true" />
+      <created>1782388224556</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1782388224556</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -150,6 +149,7 @@
     <MESSAGE value="version 1.0.0" />
     <MESSAGE value="version 1.0.1" />
     <MESSAGE value="version 1.0.2" />
-    <option name="LAST_COMMIT_MESSAGE" value="version 1.0.2" />
+    <MESSAGE value="version 1.0.5" />
+    <option name="LAST_COMMIT_MESSAGE" value="version 1.0.5" />
   </component>
 </project>

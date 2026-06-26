@@ -35,6 +35,7 @@ export default {
   advanced: {
     enableSessionReplay: false,
     sessionReplaySampleRate: 0.1,
+    checkoutEveryNms: 5000,    // 强制生成新快照的间隔（毫秒）
     replayBeforeError: 30,     // 保留错误前多少秒的录屏（默认30秒）
     replayAfterError: 10,      // 错误后继续录制多少秒（默认10秒）
     maxReplayDuration: 60,     // 环形缓冲区最大保留时长（秒）
